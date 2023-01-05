@@ -5,6 +5,6 @@ This project started with a basic analysis and cleaning using MYSQL, including q
 
 The second step was performing visualization and finding the cause of revenue increase by using [Tableau](https://public.tableau.com/views/bikesalesanalysis_16728519380800/Distributionsofunitpricesacrossproductcategories_?:language=en-GB&publish=yes&:display_count=n&:origin=viz_share_link)
 
-![img](src = './bike_sales.gif')
+![img]('./bike_sales.gif')
 
 Finally, statistical tests were performed to determine the realtion between spending insights of suspicion.
