@@ -5,53 +5,68 @@ CREATE DATABASE IF NOT EXISTS sales;
 
 USE sales;
 
-SELECT * FROM sales
+SELECT 
+    *
+FROM
+    sales
 LIMIT 10;
 
 DESCRIBE sales;
-# From the previous query, we can see that there is a column of suspicion: "Column1"
-# There was no description on the column from kaggle website, let's investigate further on
-# what this column might represents.
+SELECT DISTINCT
+    (Column1)
+FROM
+    sales;
 
-SELECT DISTINCT(Column1)
-FROM sales;
+SELECT 
+    COUNT(DISTINCT (Column1))
+FROM
+    sales;
 
-SELECT COUNT(DISTINCT(Column1))
-FROM sales;
+SELECT 
+    COUNT(*)
+FROM
+    sales;
 
-SELECT COUNT(*)
-FROM sales;
+SELECT 
+    SUM(IF(Column1 IS NOT NULL, 1, 0))
+FROM
+    sales;
 
-# Since there is a suspicious column `Column1`, let's investigate
-# what is contained in the column.
-SELECT SUM(IF(Column1 IS NOT NULL, 1, 0))
-FROM sales;
-
-SELECT IF(Column1 = '', 1, 0)
-FROM sales
+SELECT 
+    IF(Column1 = '', 1, 0)
+FROM
+    sales
 LIMIT 10;
 
-SELECT DISTINCT(`Product Category`)
-FROM sales;
+SELECT DISTINCT
+    (`Product Category`)
+FROM
+    sales;
 
-SELECT DISTINCT(`Sub Category`)
-FROM sales;
+SELECT DISTINCT
+    (`Sub Category`)
+FROM
+    sales;
 
-# Replacing empty string in Column1 as NULL
-UPDATE sales
-SET Column1 = CASE
-WHEN Column1='' THEN null
-ELSE Column1
-END;
+UPDATE sales 
+SET 
+    Column1 = CASE
+        WHEN Column1 = '' THEN NULL
+        ELSE Column1
+    END;
 
 ALTER TABLE sales
 MODIFY Column1 INT;
 
-SELECT * FROM sales;
+SELECT 
+    COUNT(*)
+FROM
+    sales;
 
-# Overview of the distribution of sales between countries.
-SELECT Country, Count(*) AS num_transaction
-FROM sales
+SELECT 
+    Country, COUNT(*) AS num_transaction
+FROM
+    sales
 GROUP BY country
 ORDER BY num_transaction DESC;
 
@@ -73,25 +88,24 @@ ORDER BY quantity DESC) inter
 ) inter2
 WHERE quantity_order < 5;
 
-SELECT DISTINCT(`Customer Gender`)
-FROM sales;
-# After identifying there's only 2 gender type, let's have a look at the distribution
-# among gender in transactions.
-
-SELECT `Customer Gender`, COUNT(*)
-FROM sales
-Group By `Customer Gender`;
-# We are seeing a pretty similar distribution.
-
-# What about the total revenue by gender?
-SELECT SUM(Revenue)
-FROM sales
+SELECT DISTINCT
+    (`Customer Gender`)
+FROM
+    sales;
+SELECT 
+    `Customer Gender`, COUNT(*)
+FROM
+    sales
 GROUP BY `Customer Gender`;
-# Interestingly, there is no clear evidence that gender has any effect on number of transactions or
-# total money spent.alter
-# A statostical test can be run to determine more carefully using t-test.
-
-SELECT * FROM sales
+SELECT 
+    SUM(Revenue)
+FROM
+    sales
+GROUP BY `Customer Gender`;
+SELECT 
+    *
+FROM
+    sales
 LIMIT 10;
 
 
@@ -187,14 +201,12 @@ It shows that in this age group, people are either more interested in cycling, a
 financial freedom to invested in cycling gears.
 */
 
-SELECT * FROM sales
+SELECT 
+    *
+FROM
+    sales
 LIMIT 10;
 
-# It's worth doing a simple timeseries analysis for the revenues generated
-# Let's investigate if there was a seasonal trend in year for cyclinig
-
-# Since we will be using the str_to_date to convert the monthnames to int and order them,
-# we will need to change the sql_mode and ALLOW_INVALID_DATES
 SELECT @@sql_mode;
 SET SESSION sql_mode = CONCAT(@@sql_mode, ',ALLOW_INVALID_DATES');
 
@@ -227,19 +239,23 @@ Here we are seeing an interesting pattern, at the start of the year, the revenue
 up until June, where the revenue of July was half of June, and again the revenue started increasing.alter
 */
 
-# This is an odd behaviour and is worth investigating more.
-# Let's look if there's any inconsistency in the data.alter
-
-SELECT * FROM sales
+SELECT 
+    *
+FROM
+    sales
 LIMIT 10;
 
-SELECT COUNT(*) 
-FROM sales;
+SELECT 
+    COUNT(*)
+FROM
+    sales;
 
-SELECT Year, Month
-FROM sales
-GROUP BY Year, Month
-ORDER BY Year, Month(str_to_date(Month, '%M'));
+SELECT 
+    Year, Month
+FROM
+    sales
+GROUP BY Year , Month
+ORDER BY Year , MONTH(STR_TO_DATE(Month, '%M'));
 /*
 '2015', 'January'
 '2015', 'February'
@@ -300,8 +316,10 @@ This behaviour could be argued with the holiday season (Christmas, Boxing Day et
 To support the claim, let's look at the countries where data were colelcted.
 */
 
-SELECT DISTINCT(Country)
-FROM sales;
+SELECT DISTINCT
+    (Country)
+FROM
+    sales;
 /*
 'United States'
 'France'
@@ -356,37 +374,63 @@ Indeed, there was a small 'bump' in revenue in December comparing to neighbourin
 however, the reason was not justofied.
 */
 
-# Let's extract the day information from the table,
-# before we move the analysis to Tableau for easier visualization across categories.
-
-SELECT * FROM sales LIMIT 10;
-
-SELECT *,
-DAY(str_to_date(Date, '%m/%d/%Y')) AS Day,
-Month(str_to_date(Date, '%m/%d/%Y')) AS Month_numeric
-FROM sales
+SELECT 
+    *
+FROM
+    sales
 LIMIT 10;
 
-CREATE TABLE sales_cleaned 
-SELECT *,
-DAY(str_to_date(Date, '%m/%d/%Y')) AS Day,
-Month(str_to_date(Date, '%m/%d/%Y')) AS Month_numeric
-FROM sales;
+SELECT 
+    *,
+    DAY(STR_TO_DATE(Date, '%m/%d/%Y')) AS Day,
+    MONTH(STR_TO_DATE(Date, '%m/%d/%Y')) AS Month_numeric
+FROM
+    sales
+LIMIT 10;
 
-SELECT * FROM sales_cleaned
+DROP TABLE IF EXISTS sales_cleaned;
+CREATE TABLE sales_cleaned SELECT *,
+    DAY(STR_TO_DATE(Date, '%m/%d/%Y')) AS Day,
+    MONTH(STR_TO_DATE(Date, '%m/%d/%Y')) AS Month_numeric FROM
+    sales;
+
+SELECT 
+    *
+FROM
+    sales_cleaned
 LIMIT 10;
 
 ALTER TABLE sales_cleaned 
 DROP COlumn1;
 
-SELECT * FROM sales_cleaned;
+SELECT 
+    *
+FROM
+    sales_cleaned;
 
 # We are interested in the net profit generated by each transaction
 # and if there was any difference in profit generated for each product categories
 
 # Let's create a new column calculating the profit
-ALTER TABLE sales_cleaned
+
+# Create a procedure to drop the net_profit column if it exists
+DELIMITER ';;'
+CREATE PROCEDURE drop_if_exists(
+tname VARCHAR(50),
+cname VARCHAR(50)
+)
+BEGIN
+IF EXISTS (SELECT * FROM information_schema.columns WHERE TABLE_SCHEMA = schema() 
+AND TABLE_NAME = tname AND COLUMN_NAME = cname)
+THEN ALTER TABLE sales_cleaned
 DROP COLUMN net_profit;
+END IF;
+END;;
+
+DELIMITER ;
+
+# Dropping net_profit column
+CALL drop_if_exists('sales_cleaned', 'net_profit');
 
 ALTER TABLE sales_cleaned
 ADD COLUMN net_profit INT AFTER Revenue;
@@ -439,3 +483,5 @@ touring bikes, with $71 on average.
 */
 
 SELECT * FROM sales_cleaned LIMIT 10;
+
+SELECT COUNT(*) FROM sales_cleaned;
