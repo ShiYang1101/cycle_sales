@@ -1,0 +1,4 @@
+project:
+  render:
+    - "*.ipynb"
+    - "!cycle_sales.ipynb"
